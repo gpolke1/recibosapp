@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#1a56db">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>RecibosApp</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f0f4f8;--surface:#ffffff;--surface2:#e8f0fe;--border:#d0dff0;--accent:#1a56db;--accent2:#0ea5e9;--green:#059669;--yellow:#d97706;--red:#dc2626;--text:#1e3a5f;--muted:#64748b;--radius:12px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+#loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2000}
+.loading-logo{width:72px;height:72px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:16px;box-shadow:0 0 40px rgba(26,86,219,0.2)}
+.loading-text{font-size:22px;font-weight:700;color:var(--text)}
+.loading-sub{font-size:13px;color:var(--muted);margin-top:6px}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-top:24px}
+@keyframes spin{to{transform:rotate(360deg)}}
+#login-screen{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;z-index:999}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px 32px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(26,86,219,0.10)}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px}
+.login-logo .mark{width:44px;height:44px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.login-logo span{font-size:22px;font-weight:700;color:var(--text)}
+.role-tabs{display:flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:28px}
+.role-tab{flex:1;padding:8px;text-align:center;border-radius:7px;cursor:pointer;font-size:14px;font-weight:500;color:var(--muted);transition:all .2s}
+.role-tab.active{background:var(--accent);color:white}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;font-weight:500}
+input,select,textarea{width:100%;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+.form-group{margin-bottom:18px}
+.btn{width:100%;padding:13px;border-radius:10px;border:none;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-danger{background:var(--red);color:white}
+.btn-success{background:var(--green);color:white}
+.btn-sm{width:auto;padding:7px 14px;font-size:13px;border-radius:8px}
+.forgot{text-align:center;margin-top:16px;font-size:13px;color:var(--muted)}
+.forgot a{color:var(--accent);cursor:pointer}
+.pass-wrap{position:relative}
+.pass-wrap input{padding-right:44px}
+.eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--muted);padding:4px}
+#app{display:none;flex-direction:column;min-height:100vh}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(26,86,219,0.06)}
+.topbar-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.topbar-title{font-size:16px;font-weight:700;color:var(--text)}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.notif-btn{position:relative;background:var(--bg);border:1px solid var(--border);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px}
+.notif-badge{position:absolute;top:-4px;right:-4px;background:var(--red);color:white;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.avatar{width:38px;height:38px;background:linear-gradient(135deg,#8b5cf6,#ec4899);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;cursor:pointer;color:white}
+.main-content{flex:1;padding:20px;max-width:900px;margin:0 auto;width:100%}
+.bottom-nav{background:var(--surface);border-top:1px solid var(--border);display:flex;position:sticky;bottom:0;z-index:100;box-shadow:0 -2px 8px rgba(26,86,219,0.06)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;cursor:pointer;color:var(--muted);font-size:11px;font-weight:500;transition:color .2s;border:none;background:none;font-family:inherit}
+.nav-icon{font-size:22px}
+.nav-item.active{color:var(--accent)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(26,86,219,0.04)}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-title{font-size:15px;font-weight:600;color:var(--text)}
+.section-title{font-size:20px;font-weight:700;margin-bottom:4px;color:var(--text)}
+.section-sub{font-size:14px;color:var(--muted);margin-bottom:20px}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:12px;font-weight:600}
+.badge-green{background:rgba(5,150,105,.12);color:var(--green)}
+.badge-yellow{background:rgba(217,119,6,.12);color:var(--yellow)}
+.badge-red{background:rgba(220,38,38,.12);color:var(--red)}
+.badge-blue{background:rgba(26,86,219,.12);color:var(--accent)}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:0 2px 8px rgba(26,86,219,0.04)}
+.stat-value{font-size:28px;font-weight:700;font-family:'DM Mono',monospace}
+.stat-label{font-size:12px;color:var(--muted);margin-top:4px}
+.list-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}
+.list-item:last-child{border-bottom:none}
+.list-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.list-body{flex:1;min-width:0}
+.list-name{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.list-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.profile-header{background:linear-gradient(135deg,var(--surface2),#dbeafe);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:16px;display:flex;align-items:center;gap:20px}
+.profile-avatar{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;flex-shrink:0;color:white}
+.profile-name{font-size:20px;font-weight:700;color:var(--text)}
+.profile-role{font-size:13px;color:var(--muted)}
+.profile-meta{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap}
+.profile-meta-item{font-size:12px;color:var(--muted)}
+.profile-meta-item strong{color:var(--text)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:flex-end;justify-content:center;padding:20px}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:28px;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;color:var(--text)}
+.close-btn{background:var(--bg);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--muted)}
+.sig-container{background:white;border:2px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;position:relative}
+#sigCanvas{display:block;width:100%;touch-action:none;cursor:crosshair}
+.sig-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:14px;pointer-events:none}
+.receipt-preview{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;font-family:'DM Mono',monospace;font-size:13px;line-height:2}
+.receipt-preview h3{font-family:'DM Sans',sans-serif;text-align:center;margin-bottom:12px;color:var(--accent)}
+.receipt-row{display:flex;justify-content:space-between;border-bottom:1px dashed var(--border);padding:3px 0;color:var(--text)}
+.notif-item{display:flex;gap:12px;padding:14px;background:var(--surface2);border-radius:12px;margin-bottom:10px;border-left:3px solid var(--accent)}
+.notif-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;margin-top:5px;flex-shrink:0}
+.upload-zone{border:2px dashed var(--border);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2)}
+.upload-zone:hover{border-color:var(--accent);background:#dbeafe}
+.upload-icon{font-size:40px;margin-bottom:10px}
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:14px;z-index:9999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.1);color:var(--text)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.success{border-color:var(--green);color:var(--green)}
+#toast.error{border-color:var(--red);color:var(--red)}
+.tabs{display:flex;gap:4px;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:20px;overflow-x:auto}
+.tab{padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);white-space:nowrap;transition:all .2s;border:none;background:none;font-family:inherit}
+.tab.active{background:var(--accent);color:white}
+.search-bar{position:relative;margin-bottom:16px}
+.search-bar input{padding-left:42px}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;pointer-events:none}
+.emp-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .2s;margin-bottom:10px;box-shadow:0 2px 8px rgba(26,86,219,0.04)}
+.emp-card:hover{border-color:var(--accent);transform:translateX(3px)}
+.emp-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex-shrink:0;color:white}
+.flex-between{display:flex;align-items:center;justify-content:space-between}
+.text-muted{color:var(--muted);font-size:13px}
+.hidden{display:none!important}
+.page{display:none}
+.page.active{display:block}
+@media(min-width:600px){.stat-grid{grid-template-columns:repeat(4,1fr)}.main-content{padding:28px}}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading-screen">
+  <div class="loading-logo">📋</div>
+  <div class="loading-text">RecibosApp</div>
+  <div class="loading-sub">Conectando...</div>
+  <div class="spinner"></div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="mark">📋</div>
+      <span>RecibosApp</span>
+    </div>
+    <div class="role-tabs">
+      <div class="role-tab active" onclick="setRole('admin')">Administrador</div>
+      <div class="role-tab" onclick="setRole('empleado')">Empleado</div>
+    </div>
+    <div class="form-group">
+      <label>Usuario</label>
+      <input type="text" id="loginUser" placeholder="Tu usuario">
+    </div>
+    <div class="form-group">
+      <label>Contraseña</label>
+      <div class="pass-wrap">
+        <input type="password" id="loginPass" placeholder="••••••••">
+        <button class="eye-btn" onclick="togglePass('loginPass',this)" type="button">👁️</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">Ingresar</button>
+    <div class="forgot"><a onclick="showToast('Contactá al administrador para restablecer tu contraseña','success')">¿Olvidaste tu contraseña?</a></div>
+    <div style="text-align:center;margin-top:12px">
+      <button class="btn btn-secondary" style="width:100%;margin-top:4px" onclick="openModal('modal-primer-ingreso')">🆕 Ingreso por primera vez</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">📋</div>
+      <div class="topbar-title" id="topbarTitle">RecibosApp</div>
+    </div>
+    <div class="topbar-right">
+      <div class="notif-btn" onclick="showNotifPanel()">🔔<div class="notif-badge hidden" id="notifBadge">0</div></div>
+      <div class="avatar" id="userAvatar" onclick="showUserMenu()">AD</div>
+    </div>
+  </div>
+
+  <div class="main-content">
+
+    <!-- ADMIN: DASHBOARD -->
+    <div id="page-dashboard" class="page active">
+      <div class="section-title" id="dashGreet">Bienvenido 👋</div>
+      <div class="section-sub" id="companyName">Configure los datos de su empresa</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-value" id="st-emps" style="color:var(--accent)">0</div><div class="stat-label">Empleados</div></div>
+        <div class="stat-card"><div class="stat-value" id="st-pend" style="color:var(--yellow)">0</div><div class="stat-label">Pend. firma</div></div>
+        <div class="stat-card"><div class="stat-value" id="st-firm" style="color:var(--green)">0</div><div class="stat-label">Firmados</div></div>
+        <div class="stat-card"><div class="stat-value" id="st-notif" style="color:var(--accent2)">0</div><div class="stat-label">Avisos</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">⚡ Acciones Rápidas</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button class="btn btn-primary btn-sm" style="width:100%;padding:12px" onclick="openModal('modal-send-receipt')">📤 Enviar Recibo</button>
+          <button class="btn btn-secondary btn-sm" style="width:100%;padding:12px" onclick="openModal('modal-send-notif')">📢 Enviar Aviso</button>
+          <button class="btn btn-secondary btn-sm" style="width:100%;padding:12px" onclick="navTo('page-employees')">👥 Ver Empleados</button>
+          <button class="btn btn-secondary btn-sm" style="width:100%;padding:12px" onclick="navTo('page-reports')">📑 Reportes</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">🕐 Actividad Reciente</div></div>
+        <div id="recent-activity"><div class="text-muted" style="text-align:center;padding:20px">Sin actividad reciente</div></div>
+      </div>
+    </div>
+
+    <!-- ADMIN: EMPLEADOS -->
+    <div id="page-employees" class="page">
+      <div class="flex-between" style="margin-bottom:6px">
+        <div class="section-title">👥 Empleados</div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-emp')">+ Agregar</button>
+      </div>
+      <div class="section-sub">Gestión de legajos</div>
+      <div class="search-bar"><span class="search-icon">🔍</span><input type="text" placeholder="Buscar empleado..." oninput="filterEmps(this.value)"></div>
+      <div id="emp-list"></div>
+    </div>
+
+    <!-- ADMIN: LEGAJO -->
+    <div id="page-legajo" class="page">
+      <button onclick="navTo('page-employees')" style="background:none;border:none;color:var(--muted);cursor:pointer;margin-bottom:16px;font-family:inherit;font-size:14px">← Volver</button>
+      <div id="legajo-content"></div>
+    </div>
+
+    <!-- ADMIN: RECIBOS -->
+    <div id="page-receipts" class="page">
+      <div class="flex-between" style="margin-bottom:6px">
+        <div class="section-title">📄 Recibos</div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-send-receipt')">+ Enviar</button>
+      </div>
+      <div class="section-sub">Historial de recibos</div>
+      <div class="tabs">
+        <button class="tab active" onclick="filterReceipts('todos',this)">Todos</button>
+        <button class="tab" onclick="filterReceipts('pendientes',this)">Pendientes</button>
+        <button class="tab" onclick="filterReceipts('firmados',this)">Firmados</button>
+      </div>
+      <div id="receipts-list"></div>
+    </div>
+
+    <!-- ADMIN: AVISOS -->
+    <div id="page-notifs" class="page">
+      <div class="flex-between" style="margin-bottom:6px">
+        <div class="section-title">📢 Avisos</div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-send-notif')">+ Nuevo</button>
+      </div>
+      <div class="section-sub">Notificaciones y directivas</div>
+      <div id="notifs-list"></div>
+    </div>
+
+    <!-- ADMIN: REPORTES -->
+    <div id="page-reports" class="page">
+      <div class="section-title">📑 Reportes</div>
+      <div class="section-sub">Estadísticas del mes</div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px">🔒 Pendientes de Firma</div>
+        <div id="pending-list"></div>
+      </div>
+    </div>
+
+    <!-- ADMIN: CONFIG -->
+    <div id="page-config" class="page">
+      <div class="section-title">⚙️ Configuración</div>
+      <div class="section-sub">Datos de empresa y administradores</div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px">🏢 Datos de la Empresa</div>
+        <div class="form-group"><label>Nombre de la empresa</label><input id="cfg-nombre" placeholder="Mi Empresa S.A."></div>
+        <div class="form-group"><label>CUIT</label><input id="cfg-cuit" placeholder="30-12345678-9"></div>
+        <div class="form-group"><label>Dirección</label><input id="cfg-dir" placeholder="Av. Principal 123"></div>
+        <div class="form-group"><label>Email</label><input id="cfg-email" type="email" placeholder="rrhh@empresa.com"></div>
+        <div class="form-group"><label>Teléfono / WhatsApp</label><input id="cfg-tel" placeholder="+54 9 ..."></div>
+        <button class="btn btn-primary" onclick="saveCompany()">💾 Guardar Datos</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">👤 Administradores</div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-admin')">+ Agregar</button>
+        </div>
+        <div id="admins-list"></div>
+      </div>
+      <div class="card"><button class="btn btn-danger" onclick="doLogout()">🚪 Cerrar Sesión</button></div>
+    </div>
+
+    <!-- EMPLEADO: INICIO -->
+    <div id="page-emp-home" class="page">
+      <div class="section-title" id="empGreet">Hola 👋</div>
+      <div class="section-sub">Tu portal de recibos</div>
+      <div class="stat-grid" style="grid-template-columns:1fr 1fr">
+        <div class="stat-card"><div class="stat-value" id="emp-pending-count" style="color:var(--yellow)">0</div><div class="stat-label">Pend. firma</div></div>
+        <div class="stat-card"><div class="stat-value" id="emp-signed-count" style="color:var(--green)">0</div><div class="stat-label">Firmados</div></div>
+      </div>
+      <div id="emp-pending-card"></div>
+      <div class="card"><div class="card-title" style="margin-bottom:14px">🔔 Novedades</div><div id="emp-novedades"></div></div>
+    </div>
+
+    <div id="page-emp-receipts" class="page">
+      <div class="section-title">📄 Mis Recibos</div>
+      <div class="section-sub">Historial de recibos de sueldo</div>
+      <div id="emp-receipts-list"></div>
+    </div>
+
+    <div id="page-emp-notifs" class="page">
+      <div class="section-title">🔔 Notificaciones</div>
+      <div class="section-sub">Mensajes y directivas</div>
+      <div id="emp-notifs-list"></div>
+    </div>
+
+    <div id="page-emp-profile" class="page">
+      <div class="section-title">👤 Mi Perfil</div>
+      <div class="section-sub">Tus datos personales</div>
+      <div id="emp-profile-content"></div>
+      <div class="card" style="margin-top:16px"><button class="btn btn-danger" onclick="doLogout()">🚪 Cerrar Sesión</button></div>
+    </div>
+
+  </div>
+
+  <div class="bottom-nav" id="nav-admin">
+    <button class="nav-item active" onclick="navTo('page-dashboard',this)"><span class="nav-icon">🏠</span>Inicio</button>
+    <button class="nav-item" onclick="navTo('page-employees',this)"><span class="nav-icon">👥</span>Empleados</button>
+    <button class="nav-item" onclick="navTo('page-receipts',this)"><span class="nav-icon">📄</span>Recibos</button>
+    <button class="nav-item" onclick="navTo('page-notifs',this)"><span class="nav-icon">📢</span>Avisos</button>
+    <button class="nav-item" onclick="navTo('page-config',this)"><span class="nav-icon">⚙️</span>Config</button>
+  </div>
+
+  <div class="bottom-nav hidden" id="nav-emp">
+    <button class="nav-item active" onclick="navTo('page-emp-home',this)"><span class="nav-icon">🏠</span>Inicio</button>
+    <button class="nav-item" onclick="navTo('page-emp-receipts',this)"><span class="nav-icon">📄</span>Mis Recibos</button>
+    <button class="nav-item" onclick="navTo('page-emp-notifs',this)"><span class="nav-icon">🔔</span>Avisos</button>
+    <button class="nav-item" onclick="navTo('page-emp-profile',this)"><span class="nav-icon">👤</span>Perfil</button>
+  </div>
+</div>
+
+<!-- MODALES -->
+<div id="modal-primer-ingreso" class="modal-overlay hidden" onclick="closeModalOut(event,'modal-primer-ingreso')">
+  <div class="modal">
+    <div class="modal-title">🆕 Primer Ingreso <span class="close-btn" onclick="closeModal('modal-primer-ingreso')">✕</span></div>
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:48px;margin-bottom:12px">📋</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:6px">Bienvenido/a a RecibosApp</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6">Leé y aceptá los términos antes de ingresar.</div>
+    </div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px;max-height:220px;overflow-y:auto;font-size:13px;line-height:1.8;color:var(--muted)">
+      <strong style="color:var(--text)">TÉRMINOS Y CONDICIONES DE USO</strong><br><br>
+      <strong style="color:var(--text)">1. Aceptación</strong><br>Al utilizar esta aplicación, el empleado acepta recibir sus recibos de haberes de forma digital.<br><br>
+      <strong style="color:var(--text)">2. Validez de la firma digital</strong><br>La firma realizada equivale a la firma ológrafa del recibo en papel y constituye prueba suficiente de recepción y conformidad.<br><br>
+      <strong style="color:var(--text)">3. Confidencialidad</strong><br>El empleado se compromete a mantener en reserva sus credenciales. Cualquier acción con sus credenciales será de su exclusiva responsabilidad.<br><br>
+      <strong style="color:var(--text)">4. Datos personales</strong><br>Los datos son tratados de forma confidencial para la gestión de haberes y comunicaciones laborales.<br><br>
+      <strong style="color:var(--text)">5. Notificaciones</strong><br>El empleado acepta recibir notificaciones y directivas de la empresa a través de esta plataforma.<br><br>
+      <strong style="color:var(--text)">6. Conservación</strong><br>Los recibos firmados quedan almacenados y disponibles para consulta en todo momento.
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:20px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px">
+      <input type="checkbox" id="check-terminos" style="width:20px;height:20px;margin-top:2px;cursor:pointer;flex-shrink:0">
+      <label for="check-terminos" style="font-size:13px;color:var(--text);cursor:pointer;line-height:1.6">He leído y acepto los Términos y Condiciones. Entiendo que mi firma digital tiene validez legal.</label>
+    </div>
+    <button class="btn btn-primary" onclick="aceptarTerminos()">✅ Acepto los Términos y Condiciones</button>
+    <button class="btn btn-secondary" style="margin-top:10px" onclick="closeModal('modal-primer-ingreso')">Cancelar</button>
+  </div>
+</div>
+
+<div id="modal-add-emp" class="modal-overlay hidden" onclick="closeModalOut(event,'modal-add-emp')">
+  <div class="modal">
+    <div class="modal-title">👤 Nuevo Empleado <span class="close-btn" onclick="closeModal('modal-add-emp')">✕</span></div>
+    <div class="form-group"><label>Nombre completo *</label><input id="new-nombre" placeholder="Juan Pérez"></div>
+    <div class="form-group"><label>DNI *</label><input id="new-dni" placeholder="25.123.456"></div>
+    <div class="form-group"><label>CUIL</label><input id="new-cuil" placeholder="20-25123456-3"></div>
+    <div class="form-group"><label>Cargo / Puesto *</label><input id="new-cargo" placeholder="Operario, Administrativo..."></div>
+    <div class="form-group"><label>Área / Sector</label><input id="new-area" placeholder="Producción, RRHH..."></div>
+    <div class="form-group"><label>Fecha de ingreso</label><input id="new-ingreso" type="date"></div>
+    <div class="form-group"><label>Email *</label><input id="new-email" type="email" placeholder="empleado@email.com"></div>
+    <div class="form-group"><label>Teléfono / WhatsApp</label><input id="new-tel" placeholder="+54 9 ..."></div>
+    <div class="form-group"><label>Usuario de acceso *</label><input id="new-user" placeholder="jperez"></div>
+    <div class="form-group"><label>Contraseña inicial *</label>
+      <div class="pass-wrap"><input id="new-pass" type="password" placeholder="Mínimo 6 caracteres"><button class="eye-btn" onclick="togglePass('new-pass',this)" type="button">👁️</button></div>
+    </div>
+    <button class="btn btn-primary" onclick="addEmployee()">✅ Crear Legajo</button>
+  </div>
+</div>
+
+<div id="modal-send-receipt" class="modal-overlay hidden" onclick="closeModalOut(event,'modal-send-receipt')">
+  <div class="modal">
+    <div class="modal-title">📤 Enviar Recibo <span class="close-btn" onclick="closeModal('modal-send-receipt')">✕</span></div>
+    <div class="form-group"><label>Empleado *</label><select id="receipt-emp"><option value="">— Seleccionar —</option></select></div>
+    <div class="form-group"><label>Período *</label><input id="receipt-period" placeholder="Ej: Marzo 2025"></div>
+    <div class="form-group">
+      <label>Adjuntar archivo (PDF o imagen)</label>
+      <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+        <div class="upload-icon">📎</div>
+        <p><strong>Tocá aquí</strong> para adjuntar el recibo</p>
+        <input type="file" id="file-input" accept=".pdf,.png,.jpg,.jpeg" style="display:none" onchange="fileSelected(this)">
+        <p id="file-name" style="color:var(--green);margin-top:6px"></p>
+      </div>
+      <div id="file-preview" style="margin-top:12px;display:none">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text)">Vista previa:</div>
+        <img id="preview-img" style="width:100%;border-radius:10px;border:1px solid var(--border);display:none">
+        <div id="preview-pdf" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;display:none">
+          <div style="font-size:32px">📄</div>
+          <div id="preview-pdf-name" style="font-size:13px;color:var(--text);margin-top:6px;font-weight:600"></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Archivo PDF listo para enviar</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="sendReceipt()">📤 Enviar Recibo</button>
+  </div>
+</div>
+
+<div id="modal-send-notif" class="modal-overlay hidden" onclick="closeModalOut(event,'modal-send-notif')">
+  <div class="modal">
+    <div class="modal-title">📢 Nueva Notificación <span class="close-btn" onclick="closeModal('modal-send-notif')">✕</span></div>
+    <div class="form-group"><label>Tipo</label>
+      <select id="notif-tipo">
+        <option value="aviso">Aviso general</option>
+        <option value="directiva">Directiva / Instrucción</option>
+        <option value="urgente">Urgente</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Título *</label><input id="notif-title" placeholder="Ej: Cambio de horario"></div>
+    <div class="form-group"><label>Mensaje *</label><textarea id="notif-msg" rows="4" placeholder="Escribí el mensaje aquí..." style="resize:vertical"></textarea></div>
+    <div class="form-group">
+      <label>Adjuntar archivo (opcional)</label>
+      <div class="upload-zone" onclick="document.getElementById('notif-file-input').click()">
+        <div class="upload-icon">📎</div>
+        <p><strong>Tocá aquí</strong> para adjuntar un documento</p>
+        <input type="file" id="notif-file-input" accept=".pdf,.png,.jpg,.jpeg" style="display:none" onchange="notifFileSelected(this)">
+        <p id="notif-file-name" style="color:var(--green);margin-top:6px"></p>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="sendNotif()">📢 Enviar a todos</button>
+  </div>
+</div>
+
+<div id="modal-add-admin" class="modal-overlay hidden" onclick="closeModalOut(event,'modal-add-admin')">
+  <div class="modal">
+    <div class="modal-title">👤 Nuevo Administrador <span class="close-btn" onclick="closeModal('modal-add-admin')">✕</span></div>
+    <div class="form-group"><label>Nombre</label><input id="adm-nombre" placeholder="María García"></div>
+    <div class="form-group"><label>Usuario</label><input id="adm-email" placeholder="mgarcia"></div>
+    <div class="form-group"><label>Contraseña</label>
+      <div class="pass-wrap"><input id="adm-pass" type="password"><button class="eye-btn" onclick="togglePass('adm-pass',this)" type="button">👁️</button></div>
+    </div>
+    <div class="form-group"><label>Nivel de acceso</label>
+      <select id="adm-nivel">
+        <option value="full">Administrador completo</option>
+        <option value="recibos">Solo recibos</option>
+        <option value="notifs">Solo notificaciones</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="addAdmin()">✅ Crear Administrador</button>
+  </div>
+</div>
+
+<div id="modal-sign" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title">✍️ Firmar Recibo <span class="close-btn" onclick="closeModal('modal-sign')">✕</span></div>
+    <div class="receipt-preview">
+      <h3 id="preview-company">LA EMPRESA</h3>
+      <div class="receipt-row"><span>Empleado:</span><span id="preview-emp"></span></div>
+      <div class="receipt-row"><span>DNI:</span><span id="preview-dni"></span></div>
+      <div class="receipt-row"><span>Período:</span><span id="preview-period"></span></div>
+      <div class="receipt-row"><span>Fecha:</span><span id="preview-fecha"></span></div>
+    </div>
+    <!-- Visor del documento adjunto -->
+    <div id="sign-doc-container" style="margin:16px 0;display:none">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text)">📄 Documento del recibo:</div>
+      <img id="sign-doc-img" style="width:100%;border-radius:10px;border:1px solid var(--border);display:none">
+      <div id="sign-doc-pdf" style="display:none">
+        <a id="sign-doc-pdf-link" href="#" target="_blank" style="display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;text-decoration:none;color:var(--text)">
+          <span style="font-size:32px">📄</span>
+          <div>
+            <div style="font-weight:600;font-size:14px">Ver PDF del recibo</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">Tocá para abrir y revisar</div>
+          </div>
+          <span style="margin-left:auto;color:var(--accent)">→</span>
+        </a>
+      </div>
+    </div>
+    <div style="margin:16px 0 8px;font-size:13px;font-weight:600;color:var(--text)">Firma del empleado:</div>
+    <div class="sig-container">
+      <canvas id="sigCanvas" width="440" height="140"></canvas>
+      <div class="sig-placeholder" id="sig-placeholder">Firmar con el dedo o mouse aquí →</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btn btn-secondary btn-sm" onclick="clearSig()">🗑️ Borrar firma</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">Al confirmar declaro haber recibido conforme el presente recibo. Esta firma digital tiene validez legal.</div>
+    <button class="btn btn-success" onclick="confirmSign()">✅ Confirmar Firma</button>
+  </div>
+</div>
+
+<div id="modal-notif-panel" class="modal-overlay hidden" onclick="closeModalOut(event,'modal-notif-panel')">
+  <div class="modal">
+    <div class="modal-title">🔔 Notificaciones <span class="close-btn" onclick="closeModal('modal-notif-panel')">✕</span></div>
+    <div id="notif-panel-list"><div class="text-muted" style="text-align:center;padding:20px">Sin notificaciones</div></div>
+  </div>
+</div>
+
+<div id="modal-user-menu" class="modal-overlay hidden" onclick="closeModalOut(event,'modal-user-menu')">
+  <div class="modal">
+    <div class="modal-title" id="menu-user-name">Usuario <span class="close-btn" onclick="closeModal('modal-user-menu')">✕</span></div>
+    <div class="form-group"><label>Nueva contraseña</label>
+      <div class="pass-wrap"><input type="password" id="new-pass-menu" placeholder="Nueva contraseña"><button class="eye-btn" onclick="togglePass('new-pass-menu',this)" type="button">👁️</button></div>
+    </div>
+    <button class="btn btn-secondary" onclick="changePass()" style="margin-bottom:10px">🔒 Actualizar Contraseña</button>
+    <button class="btn btn-danger" onclick="doLogout()">🚪 Cerrar Sesión</button>
+  </div>
+</div>
+
+<!-- FIREBASE SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+// ============ CONFIGURACION FIREBASE ============
+const firebaseConfig = {
+  apiKey: "AIzaSyA-E4F6jfsoC527G5vV8ioqck8BQG6960g",
+  authDomain: "recibos-app-66b65.firebaseapp.com",
+  projectId: "recibos-app-66b65",
+  storageBucket: "recibos-app-66b65.firebasestorage.app",
+  messagingSenderId: "343169030738",
+  appId: "1:343169030738:web:68d61d12d0ad9ab92add8b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ============ HELPERS ============
+const COLORS=['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#84cc16'];
+const getColor=i=>COLORS[i%COLORS.length];
+const initials=n=>n.split(' ').map(p=>p[0]).join('').toUpperCase().slice(0,2);
+const today=()=>new Date().toLocaleDateString('es-AR');
+const hora=()=>{const h=new Date().getHours();return h<12?'Buenos días':h<18?'Buenas tardes':'Buenas noches'};
+
+let currentUser=null;
+let loginRole='admin';
+
+// ============ INIT ============
+async function init(){
+  // Verificar si existe el admin maestro, si no crearlo
+  try {
+    const adminDoc = await getDoc(doc(db,'admins','ADM'));
+    if(!adminDoc.exists()){
+      await setDoc(doc(db,'admins','ADM'),{id:'ADM',nombre:'Administrador General',email:'ADM',pass:'ADM123',nivel:'full'});
+    }
+    const coDoc = await getDoc(doc(db,'config','company'));
+    if(!coDoc.exists()){
+      await setDoc(doc(db,'config','company'),{nombre:'',cuit:'',direccion:'',email:'',telefono:''});
+    }
+  } catch(e){ console.log('Init error:',e); }
+
+  document.getElementById('loading-screen').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+}
+
+init();
+
+// ============ AUTH ============
+window.setRole=function(r){
+  loginRole=r;
+  document.querySelectorAll('.role-tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&r==='admin')||(i===1&&r==='empleado')));
+};
+
+window.doLogin=async function(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  if(!u||!p){showToast('Ingresá usuario y contraseña','error');return}
+
+  showToast('Verificando...','');
+  try {
+    if(loginRole==='admin'){
+      const snap=await getDocs(query(collection(db,'admins'),where('email','==',u),where('pass','==',p)));
+      if(!snap.empty){currentUser={tipo:'admin',data:snap.docs[0].data()};startApp();}
+      else showToast('Usuario o contraseña incorrectos','error');
+    } else {
+      const snap=await getDocs(query(collection(db,'employees'),where('user','==',u),where('pass','==',p)));
+      if(!snap.empty){currentUser={tipo:'empleado',data:snap.docs[0].data()};startApp();}
+      else showToast('Usuario o contraseña incorrectos','error');
+    }
+  } catch(e){ showToast('Error de conexión. Verificá tu internet.','error'); }
+};
+
+async function startApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+
+  const coDoc=await getDoc(doc(db,'config','company'));
+  const co=coDoc.exists()?coDoc.data():{};
+  document.getElementById('topbarTitle').textContent=co.nombre||'RecibosApp';
+  document.getElementById('userAvatar').textContent=initials(currentUser.data.nombre);
+
+  if(currentUser.tipo==='admin'){
+    document.getElementById('nav-admin').classList.remove('hidden');
+    document.getElementById('nav-emp').classList.add('hidden');
+    document.getElementById('dashGreet').textContent=hora()+' '+currentUser.data.nombre+' 👋';
+    document.getElementById('companyName').textContent=co.nombre||'Configure los datos de su empresa';
+    loadCompanyForm(co);
+    await renderAdminPages();
+    navTo('page-dashboard');
+  } else {
+    document.getElementById('nav-admin').classList.add('hidden');
+    document.getElementById('nav-emp').classList.remove('hidden');
+    document.getElementById('empGreet').textContent=hora()+' '+currentUser.data.nombre.split(' ')[0]+' 👋';
+    await renderEmployeePages();
+    navTo('page-emp-home');
+  }
+  await fillReceiptSelect();
+
+  // Escuchar cambios en tiempo real
+  setupRealtimeListeners();
+}
+
+function setupRealtimeListeners(){
+  if(currentUser.tipo==='admin'){
+    onSnapshot(collection(db,'receipts'),()=>{ renderReceiptsList(); updateDashStats(); renderPendingList(); });
+    onSnapshot(collection(db,'notifs'),()=>{ renderNotifsList(); updateDashStats(); });
+    onSnapshot(collection(db,'employees'),()=>{ renderEmpList(); updateDashStats(); fillReceiptSelect(); });
+  } else {
+    onSnapshot(query(collection(db,'receipts'),where('empId','==',currentUser.data.id)),()=>renderEmployeePages());
+    onSnapshot(collection(db,'notifs'),()=>renderEmployeePages());
+  }
+}
+
+window.doLogout=function(){
+  currentUser=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  closeAllModals();
+};
+
+// ============ NAVEGACION ============
+window.navTo=function(pageId,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pg=document.getElementById(pageId);
+  if(pg)pg.classList.add('active');
+  const navEl=currentUser&&currentUser.tipo==='admin'?document.getElementById('nav-admin'):document.getElementById('nav-emp');
+  if(navEl)navEl.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  document.querySelector('.main-content').scrollTo(0,0);
+};
+
+// ============ RENDER ADMIN ============
+async function renderAdminPages(){
+  await renderEmpList();
+  await renderReceiptsList();
+  await renderNotifsList();
+  await renderAdminsList();
+  await renderPendingList();
+  await updateDashStats();
+}
+
+async function updateDashStats(){
+  const emps=(await getDocs(collection(db,'employees'))).size;
+  const recs=await getDocs(collection(db,'receipts'));
+  const notifs=(await getDocs(collection(db,'notifs'))).size;
+  let pend=0,firm=0;
+  recs.forEach(d=>{if(d.data().estado==='pendiente')pend++;else firm++;});
+  document.getElementById('st-emps').textContent=emps;
+  document.getElementById('st-pend').textContent=pend;
+  document.getElementById('st-firm').textContent=firm;
+  document.getElementById('st-notif').textContent=notifs;
+  const firmados=[];
+  recs.forEach(d=>{if(d.data().estado==='firmado')firmados.push(d.data())});
+  const ra=document.getElementById('recent-activity');
+  ra.innerHTML=firmados.length?firmados.slice(0,3).map(r=>`<div class="list-item"><div class="list-icon" style="background:rgba(5,150,105,.1)">✅</div><div class="list-body"><div class="list-name">${r.empNombre} firmó su recibo</div><div class="list-sub">${r.period} · ${r.firmado_fecha}</div></div></div>`).join(''):'<div class="text-muted" style="text-align:center;padding:20px">Sin actividad reciente</div>';
+}
+
+async function renderEmpList(filter=''){
+  const snap=await getDocs(collection(db,'employees'));
+  const emps=[];snap.forEach(d=>emps.push({...d.data(),_id:d.id}));
+  const list=document.getElementById('emp-list');
+  const filtered=emps.filter(e=>!filter||e.nombre.toLowerCase().includes(filter.toLowerCase())||e.cargo.toLowerCase().includes(filter.toLowerCase()));
+  if(!filtered.length){list.innerHTML='<div class="text-muted" style="text-align:center;padding:32px">'+(emps.length?'No se encontraron resultados':'Aún no hay empleados cargados')+'</div>';return}
+  const recSnap=await getDocs(collection(db,'receipts'));
+  const pendMap={};
+  recSnap.forEach(d=>{const r=d.data();if(r.estado==='pendiente')pendMap[r.empId]=(pendMap[r.empId]||0)+1});
+  list.innerHTML=filtered.map((e,i)=>{
+    const pend=pendMap[e.id]||0;
+    return`<div class="emp-card" onclick="viewLegajo('${e.id}')"><div class="emp-avatar" style="background:${getColor(i)}">${initials(e.nombre)}</div><div style="flex:1"><div style="font-weight:600;font-size:15px">${e.nombre}</div><div style="font-size:12px;color:var(--muted)">${e.cargo}${e.area?' · '+e.area:''}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">${pend>0?`<span class="badge badge-yellow">⏳ ${pend}</span>`:'<span class="badge badge-green">✓ OK</span>'}<span style="font-size:11px;color:var(--muted)">Legajo →</span></div></div>`;
+  }).join('');
+}
+
+window.filterEmps=function(v){renderEmpList(v)};
+
+window.viewLegajo=async function(id){
+  const eDoc=await getDoc(doc(db,'employees',id));
+  if(!eDoc.exists())return;
+  const e=eDoc.data();
+  const recSnap=await getDocs(query(collection(db,'receipts'),where('empId','==',id)));
+  const recs=[];recSnap.forEach(d=>recs.push(d.data()));
+  document.getElementById('legajo-content').innerHTML=`
+    <div class="profile-header"><div class="profile-avatar" style="background:var(--accent)">${initials(e.nombre)}</div>
+    <div><div class="profile-name">${e.nombre}</div><div class="profile-role">${e.cargo}${e.area?' · '+e.area:''}</div>
+    <div class="profile-meta">${e.dni?`<div class="profile-meta-item">DNI <strong>${e.dni}</strong></div>`:''}${e.cuil?`<div class="profile-meta-item">CUIL <strong>${e.cuil}</strong></div>`:''}${e.ingreso?`<div class="profile-meta-item">Ingreso <strong>${e.ingreso}</strong></div>`:''}</div></div></div>
+    <div class="card"><div class="card-title" style="margin-bottom:14px">📞 Contacto</div>
+    ${e.email?`<div class="list-item"><div class="list-body"><div class="list-name">📧 ${e.email}</div></div></div>`:''}
+    ${e.tel?`<div class="list-item"><div class="list-body"><div class="list-name">📱 ${e.tel}</div><div class="list-sub"><a href="https://wa.me/${e.tel.replace(/\D/g,'')}" target="_blank" style="color:var(--green)">Abrir WhatsApp →</a></div></div></div>`:''}</div>
+    <div class="card"><div class="card-header"><div class="card-title">📄 Recibos (${recs.length})</div><button class="btn btn-primary btn-sm" onclick="openModal('modal-send-receipt')">+ Enviar</button></div>
+    ${recs.length?recs.map(r=>`<div class="list-item"><div class="list-icon" style="background:${r.estado==='firmado'?'rgba(5,150,105,.1)':'rgba(217,119,6,.1)'}">📄</div><div class="list-body"><div class="list-name">${r.period}</div><div class="list-sub">${r.estado==='firmado'?'✅ Firmado '+r.firmado_fecha:'⏳ Pendiente de firma'}</div></div><span class="badge ${r.estado==='firmado'?'badge-green':'badge-yellow'}">${r.estado}</span></div>`).join(''):'<div class="text-muted" style="padding:12px 0">Sin recibos aún</div>'}</div>
+    <div class="card"><button class="btn btn-danger btn-sm" onclick="deleteEmp('${id}')">🗑️ Eliminar Empleado</button></div>`;
+  navTo('page-legajo');
+};
+
+window.deleteEmp=async function(id){
+  if(!confirm('¿Eliminar este empleado y su legajo?'))return;
+  await deleteDoc(doc(db,'employees',id));
+  showToast('Empleado eliminado','success');navTo('page-employees');
+};
+
+async function renderReceiptsList(filter='todos'){
+  const snap=await getDocs(collection(db,'receipts'));
+  let recs=[];snap.forEach(d=>recs.push({...d.data(),_id:d.id}));
+  if(filter==='pendientes')recs=recs.filter(r=>r.estado==='pendiente');
+  if(filter==='firmados')recs=recs.filter(r=>r.estado==='firmado');
+  const list=document.getElementById('receipts-list');
+  if(!recs.length){list.innerHTML='<div class="text-muted" style="text-align:center;padding:32px">No hay recibos</div>';return}
+  list.innerHTML=recs.map(r=>`<div class="card" style="margin-bottom:10px;padding:16px"><div class="flex-between" style="margin-bottom:8px"><div style="font-weight:600">${r.empNombre}</div><span class="badge ${r.estado==='firmado'?'badge-green':'badge-yellow'}">${r.estado==='firmado'?'✅ Firmado':'⏳ Pendiente'}</span></div><div class="text-muted">${r.period} · Enviado: ${r.fecha}</div>${r.firmado_fecha?`<div class="text-muted">Firmado: ${r.firmado_fecha}</div>`:''}</div>`).join('');
+}
+
+window.filterReceipts=function(f,btn){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');renderReceiptsList(f)};
+
+async function renderNotifsList(){
+  const snap=await getDocs(collection(db,'notifs'));
+  const notifs=[];snap.forEach(d=>notifs.push(d.data()));
+  const colors={aviso:'badge-blue',directiva:'badge-yellow',urgente:'badge-red'};
+  document.getElementById('notifs-list').innerHTML=notifs.length?notifs.map(n=>`
+    <div class="card" style="margin-bottom:10px">
+      <div class="flex-between" style="margin-bottom:8px"><div style="font-weight:600">${n.titulo}</div><span class="badge ${colors[n.tipo]||'badge-blue'}">${n.tipo}</span></div>
+      <div style="font-size:13px;line-height:1.6;color:var(--muted)">${n.mensaje}</div>
+      ${n.archivoData?`<a href="#" onclick="abrirArchivoNotif(event,'${n.archivoData}','${n.archivoTipo||''}');return false;" style="display:flex;align-items:center;gap:8px;margin-top:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;text-decoration:none;color:var(--text)"><span>${n.archivoTipo&&n.archivoTipo.startsWith('image/')?'🖼️':'📄'}</span><span style="font-size:13px;font-weight:600">${n.archivoNombre||'Ver adjunto'}</span><span style="margin-left:auto;color:var(--accent);font-size:13px">Abrir →</span></a>`:''}
+      <div class="text-muted" style="margin-top:8px">📅 ${n.fecha}</div>
+    </div>`).join(''):'<div class="text-muted" style="text-align:center;padding:32px">Sin notificaciones enviadas</div>';
+}
+
+async function renderAdminsList(){
+  const snap=await getDocs(collection(db,'admins'));
+  const admins=[];snap.forEach(d=>admins.push({...d.data(),_id:d.id}));
+  document.getElementById('admins-list').innerHTML=admins.map(a=>`<div class="list-item"><div class="list-icon" style="background:rgba(26,86,219,.1)">👤</div><div class="list-body"><div class="list-name">${a.nombre}</div><div class="list-sub">${a.email} · ${a.nivel}</div></div>${a.email!=='ADM'?`<button class="btn btn-danger btn-sm" onclick="removeAdmin('${a._id}')">✕</button>`:'<span class="badge badge-blue">Maestro</span>'}</div>`).join('');
+}
+
+async function renderPendingList(){
+  const snap=await getDocs(query(collection(db,'receipts'),where('estado','==','pendiente')));
+  const pend=[];snap.forEach(d=>pend.push({...d.data(),_id:d.id}));
+  document.getElementById('pending-list').innerHTML=pend.length?pend.map(r=>`<div class="list-item"><div class="list-body"><div class="list-name">${r.empNombre}</div><div class="list-sub">${r.period}</div></div><button class="btn btn-secondary btn-sm" onclick="showToast('Recordatorio enviado a ${r.empNombre}','success')">🔔 Recordar</button></div>`).join(''):'<div class="text-muted" style="padding:12px 0;text-align:center">No hay pendientes 🎉</div>';
+}
+
+// ============ RENDER EMPLEADO ============
+async function renderEmployeePages(){
+  const e=currentUser.data;
+  const recSnap=await getDocs(query(collection(db,'receipts'),where('empId','==',e.id)));
+  const recs=[];recSnap.forEach(d=>recs.push({...d.data(),_id:d.id}));
+  const pend=recs.filter(r=>r.estado==='pendiente');
+  const firm=recs.filter(r=>r.estado==='firmado');
+  document.getElementById('emp-pending-count').textContent=pend.length;
+  document.getElementById('emp-signed-count').textContent=firm.length;
+  const pc=document.getElementById('emp-pending-card');
+  pc.innerHTML=pend.length?`<div class="card"><div class="card-header"><div class="card-title">⏳ Pendiente de Firma</div><span class="badge badge-yellow">Urgente</span></div>${pend.map(r=>`<div class="list-item"><div class="list-icon" style="background:rgba(217,119,6,.1)">📄</div><div class="list-body"><div class="list-name">Recibo ${r.period}</div><div class="list-sub">Enviado: ${r.fecha}</div></div><button class="btn btn-primary btn-sm" onclick="openSignFlow('${r._id}')">Firmar</button></div>`).join('')}</div>`:'<div class="card"><div class="card-header"><div class="card-title">🎉 Todo al día</div></div><div class="text-muted" style="text-align:center;padding:12px">No tenés recibos pendientes.</div></div>';
+  const notifSnap=await getDocs(collection(db,'notifs'));
+  const notifs=[];notifSnap.forEach(d=>notifs.push(d.data()));
+  document.getElementById('emp-novedades').innerHTML=notifs.length?notifs.slice(0,3).map(n=>`<div class="notif-item"><div class="notif-dot"></div><div><div style="font-size:13px;font-weight:600">${n.titulo}</div><div class="text-muted" style="margin-top:3px">${n.mensaje}</div><div class="text-muted" style="margin-top:4px">${n.fecha}</div></div></div>`).join(''):'<div class="text-muted" style="text-align:center;padding:16px">Sin novedades</div>';
+  document.getElementById('emp-receipts-list').innerHTML=recs.length?recs.map(r=>`
+    <div class="card" style="margin-bottom:10px;padding:16px">
+      <div class="flex-between" style="margin-bottom:8px">
+        <div style="font-weight:600">${r.period}</div>
+        <span class="badge ${r.estado==='firmado'?'badge-green':'badge-yellow'}">${r.estado==='firmado'?'✅ Firmado':'⏳ Pendiente'}</span>
+      </div>
+      ${r.archivoData?`<a href="#" onclick="abrirArchivo(event,'${r._id}','recibo');return false;" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;text-decoration:none;color:var(--text)"><span>${r.archivoTipo&&r.archivoTipo.startsWith('image/')?'🖼️':'📄'}</span><span style="font-size:13px;font-weight:600">Ver recibo adjunto</span><span style="margin-left:auto;color:var(--accent);font-size:13px">Abrir →</span></a>`:''}
+      ${r.estado==='pendiente'?`<button class="btn btn-primary btn-sm" style="width:100%" onclick="openSignFlow('${r._id}')">✍️ Firmar</button>`:`<div class="text-muted">Firmado: ${r.firmado_fecha}</div>`}
+    </div>`).join(''):'<div class="text-muted" style="text-align:center;padding:32px">No tenés recibos aún</div>';
+  document.getElementById('emp-notifs-list').innerHTML=notifs.length?notifs.map(n=>`
+    <div class="notif-item">
+      <div class="notif-dot" style="background:var(--accent2)"></div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${n.titulo}</div>
+        <div class="text-muted" style="margin-top:3px">${n.mensaje}</div>
+        ${n.archivoData?`<a href="#" onclick="abrirArchivoNotif(event,'${n.archivoData}','${n.archivoTipo||''}');return false;" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:white;border:1px solid var(--border);border-radius:8px;padding:8px 12px;text-decoration:none;color:var(--text);font-size:13px"><span>${n.archivoTipo&&n.archivoTipo.startsWith('image/')?'🖼️':'📄'}</span><span>${n.archivoNombre||'Ver adjunto'}</span></a>`:''}
+        <div class="text-muted" style="margin-top:6px">${n.fecha}</div>
+      </div>
+    </div>`).join(''):'<div class="text-muted" style="text-align:center;padding:32px">Sin novedades</div>';
+  document.getElementById('emp-profile-content').innerHTML=`<div class="profile-header"><div class="profile-avatar" style="background:var(--accent)">${initials(e.nombre)}</div><div><div class="profile-name">${e.nombre}</div><div class="profile-role">${e.cargo}${e.area?' · '+e.area:''}</div></div></div><div class="card"><div class="card-title" style="margin-bottom:14px">📋 Mis Datos</div>${e.dni?`<div class="list-item"><div class="list-body"><div class="list-name">🪪 DNI</div><div class="list-sub">${e.dni}</div></div></div>`:''}${e.email?`<div class="list-item"><div class="list-body"><div class="list-name">📧 Email</div><div class="list-sub">${e.email}</div></div></div>`:''}${e.tel?`<div class="list-item"><div class="list-body"><div class="list-name">📱 Teléfono</div><div class="list-sub">${e.tel}</div></div></div>`:''}${e.ingreso?`<div class="list-item"><div class="list-body"><div class="list-name">📅 Ingreso</div><div class="list-sub">${e.ingreso}</div></div></div>`:''}</div><div class="card"><div class="card-title" style="margin-bottom:14px">🔒 Cambiar Contraseña</div><div class="form-group"><div class="pass-wrap"><input type="password" id="emp-new-pass" placeholder="Nueva contraseña"><button class="eye-btn" onclick="togglePass('emp-new-pass',this)" type="button">👁️</button></div></div><button class="btn btn-secondary" onclick="changeEmpPass()">Actualizar</button></div>`;
+}
+
+// ============ ACCIONES ============
+window.addEmployee=async function(){
+  const nombre=document.getElementById('new-nombre').value.trim();
+  const dni=document.getElementById('new-dni').value.trim();
+  const cargo=document.getElementById('new-cargo').value.trim();
+  const user=document.getElementById('new-user').value.trim();
+  const pass=document.getElementById('new-pass').value;
+  const email=document.getElementById('new-email').value.trim();
+  if(!nombre||!dni||!cargo||!user||!pass){showToast('Completá los campos obligatorios (*)','error');return}
+  const snap=await getDocs(query(collection(db,'employees'),where('user','==',user)));
+  if(!snap.empty){showToast('Ese usuario ya existe','error');return}
+  const newId='EMP_'+Date.now();
+  await setDoc(doc(db,'employees',newId),{id:newId,nombre,dni,cuil:document.getElementById('new-cuil').value.trim(),cargo,area:document.getElementById('new-area').value.trim(),ingreso:document.getElementById('new-ingreso').value,email,tel:document.getElementById('new-tel').value.trim(),user,pass});
+  closeModal('modal-add-emp');
+  showToast('Empleado agregado ✅','success');
+  ['new-nombre','new-dni','new-cuil','new-cargo','new-area','new-email','new-tel','new-user','new-pass'].forEach(id=>document.getElementById(id).value='');
+};
+
+window.addAdmin=async function(){
+  const nombre=document.getElementById('adm-nombre').value.trim();
+  const email=document.getElementById('adm-email').value.trim();
+  const pass=document.getElementById('adm-pass').value;
+  const nivel=document.getElementById('adm-nivel').value;
+  if(!nombre||!email||!pass){showToast('Completá todos los campos','error');return}
+  const snap=await getDocs(query(collection(db,'admins'),where('email','==',email)));
+  if(!snap.empty){showToast('Ese usuario ya existe','error');return}
+  const newId='ADM_'+Date.now();
+  await setDoc(doc(db,'admins',newId),{id:newId,nombre,email,pass,nivel});
+  closeModal('modal-add-admin');showToast('Administrador agregado ✅','success');
+  await renderAdminsList();
+};
+
+window.removeAdmin=async function(id){
+  if(!confirm('¿Eliminar este administrador?'))return;
+  await deleteDoc(doc(db,'admins',id));
+  await renderAdminsList();showToast('Eliminado','success');
+};
+
+window.sendReceipt=async function(){
+  const empId=document.getElementById('receipt-emp').value;
+  const period=document.getElementById('receipt-period').value.trim();
+  if(!empId||!period){showToast('Seleccioná empleado y período','error');return}
+  showToast('Enviando...','');
+  // Guardar archivo como base64 en Firestore (gratis, hasta 1MB)
+  let archivoData = selectedFileData || null;
+  let archivoTipo = selectedFileType || null;
+  let archivoNombre = selectedFileName || null;
+  const empDoc=await getDoc(doc(db,'employees',empId));
+  const emp=empDoc.data();
+  try {
+    await addDoc(collection(db,'receipts'),{empId,empNombre:emp.nombre,period,estado:'pendiente',fecha:today(),firmado_fecha:null,firma_img:null,archivoData,archivoTipo,archivoNombre});
+  } catch(e){
+    showToast('Error: el archivo es muy grande. Usá imágenes menores a 1MB.','error');return;
+  }
+  closeModal('modal-send-receipt');
+  showToast('Recibo enviado a '+emp.nombre+' ✅','success');
+  if(emp.tel)setTimeout(()=>showToast('💬 WhatsApp a '+emp.tel,'success'),1200);
+  if(emp.email)setTimeout(()=>showToast('📧 Email a '+emp.email,'success'),2400);
+  document.getElementById('receipt-period').value='';
+  document.getElementById('receipt-emp').value='';
+  document.getElementById('file-name').textContent='';
+  document.getElementById('file-preview').style.display='none';
+  selectedFileData=null;selectedFileType=null;selectedFileName=null;
+};
+
+window.sendNotif=async function(){
+  const titulo=document.getElementById('notif-title').value.trim();
+  const msg=document.getElementById('notif-msg').value.trim();
+  const tipo=document.getElementById('notif-tipo').value;
+  if(!titulo||!msg){showToast('Completá título y mensaje','error');return}
+  showToast('Enviando...','');
+  try {
+    await addDoc(collection(db,'notifs'),{titulo,tipo,mensaje:msg,fecha:today(),archivoData:notifFileData||null,archivoTipo:notifFileType||null,archivoNombre:notifFileName||null});
+  } catch(e){ showToast('Error: el archivo es muy grande. Usá archivos menores a 1MB.','error'); return; }
+  closeModal('modal-send-notif');showToast('Notificación enviada ✅','success');
+  document.getElementById('notif-title').value='';
+  document.getElementById('notif-msg').value='';
+  document.getElementById('notif-file-name').textContent='';
+  notifFileData=null;notifFileType=null;notifFileName=null;
+};
+
+window.saveCompany=async function(){
+  await setDoc(doc(db,'config','company'),{nombre:document.getElementById('cfg-nombre').value,cuit:document.getElementById('cfg-cuit').value,direccion:document.getElementById('cfg-dir').value,email:document.getElementById('cfg-email').value,telefono:document.getElementById('cfg-tel').value});
+  const co={nombre:document.getElementById('cfg-nombre').value};
+  document.getElementById('topbarTitle').textContent=co.nombre||'RecibosApp';
+  document.getElementById('companyName').textContent=co.nombre||'Configure los datos de su empresa';
+  showToast('Datos guardados ✅','success');
+};
+
+function loadCompanyForm(co){
+  document.getElementById('cfg-nombre').value=co.nombre||'';
+  document.getElementById('cfg-cuit').value=co.cuit||'';
+  document.getElementById('cfg-dir').value=co.direccion||'';
+  document.getElementById('cfg-email').value=co.email||'';
+  document.getElementById('cfg-tel').value=co.telefono||'';
+}
+
+async function fillReceiptSelect(){
+  const snap=await getDocs(collection(db,'employees'));
+  const emps=[];snap.forEach(d=>emps.push({...d.data(),_id:d.id}));
+  document.getElementById('receipt-emp').innerHTML='<option value="">— Seleccionar empleado —</option>'+emps.map(e=>`<option value="${e._id}">${e.nombre}</option>`).join('');
+}
+
+let selectedFileData = null;
+let selectedFileType = null;
+let selectedFileName = null;
+
+let notifFileData = null;
+let notifFileType = null;
+let notifFileName = null;
+
+window.notifFileSelected=function(inp){
+  if(!inp.files||!inp.files[0])return;
+  const file = inp.files[0];
+  notifFileName = file.name;
+  document.getElementById('notif-file-name').textContent='📎 '+file.name;
+  const reader = new FileReader();
+  reader.onload = function(e){ notifFileData = e.target.result; notifFileType = file.type; };
+  reader.readAsDataURL(file);
+};
+  const file = inp.files[0];
+  selectedFileName = file.name;
+  document.getElementById('file-name').textContent='📎 '+file.name;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    selectedFileData = e.target.result;
+    selectedFileType = file.type;
+    const preview = document.getElementById('file-preview');
+    const img = document.getElementById('preview-img');
+    const pdf = document.getElementById('preview-pdf');
+    const pdfName = document.getElementById('preview-pdf-name');
+    preview.style.display='block';
+    if(file.type.startsWith('image/')){
+      img.src = e.target.result;
+      img.style.display='block';
+      pdf.style.display='none';
+    } else {
+      img.style.display='none';
+      pdf.style.display='block';
+      pdfName.textContent = file.name;
+    }
+  };
+  reader.readAsDataURL(file);
+};
+
+window.changePass=async function(){
+  const p=document.getElementById('new-pass-menu').value;
+  if(!p||p.length<4){showToast('Ingresá una contraseña válida','error');return}
+  await updateDoc(doc(db,'admins',currentUser.data.id),{pass:p});
+  showToast('Contraseña actualizada ✅','success');closeModal('modal-user-menu');
+};
+
+window.changeEmpPass=async function(){
+  const p=document.getElementById('emp-new-pass').value;
+  if(!p||p.length<4){showToast('Ingresá una contraseña válida','error');return}
+  await updateDoc(doc(db,'employees',currentUser.data.id),{pass:p});
+  showToast('Contraseña actualizada ✅','success');
+};
+
+// ============ FIRMA ============
+let sigCtx,sigDrawing=false,sigHasData=false,currentSignReceiptId=null;
+
+window.openSignFlow=async function(recId){
+  const recDoc=await getDoc(doc(db,'receipts',recId));
+  if(!recDoc.exists()){showToast('No se encontró el recibo','error');return}
+  const rec=recDoc.data();
+  currentSignReceiptId=recId;
+  const coDoc=await getDoc(doc(db,'config','company'));
+  const co=coDoc.exists()?coDoc.data():{};
+  document.getElementById('preview-company').textContent=co.nombre||'LA EMPRESA';
+  document.getElementById('preview-emp').textContent=currentUser.data.nombre;
+  document.getElementById('preview-dni').textContent=currentUser.data.dni;
+  document.getElementById('preview-period').textContent=rec.period;
+  document.getElementById('preview-fecha').textContent=today();
+  // Mostrar archivo adjunto si existe
+  const docContainer=document.getElementById('sign-doc-container');
+  const docImg=document.getElementById('sign-doc-img');
+  const docPdf=document.getElementById('sign-doc-pdf');
+  const docPdfLink=document.getElementById('sign-doc-pdf-link');
+  if(rec.archivoData){
+    docContainer.style.display='block';
+    if(rec.archivoTipo && rec.archivoTipo.startsWith('image/')){
+      docImg.src=rec.archivoData;
+      docImg.style.display='block';
+      docPdf.style.display='none';
+    } else {
+      docImg.style.display='none';
+      docPdf.style.display='block';
+      // Para PDF abrimos en nueva pestaña via blob
+      docPdfLink.onclick=function(e){
+        e.preventDefault();
+        const byteStr=atob(rec.archivoData.split(',')[1]);
+        const ab=new ArrayBuffer(byteStr.length);
+        const ia=new Uint8Array(ab);
+        for(let i=0;i<byteStr.length;i++)ia[i]=byteStr.charCodeAt(i);
+        const blob=new Blob([ab],{type:'application/pdf'});
+        window.open(URL.createObjectURL(blob),'_blank');
+      };
+    }
+  } else {
+    docContainer.style.display='none';
+  }
+  openModal('modal-sign');setTimeout(initSigPad,100);
+};
+
+function initSigPad(){
+  const canvas=document.getElementById('sigCanvas');
+  canvas.width=canvas.parentElement.offsetWidth;canvas.height=140;
+  sigCtx=canvas.getContext('2d');sigCtx.strokeStyle='#1e3a5f';sigCtx.lineWidth=2.5;sigCtx.lineCap='round';sigCtx.lineJoin='round';
+  sigHasData=false;document.getElementById('sig-placeholder').style.display='flex';
+  canvas.onmousedown=sigStart;canvas.onmousemove=sigMove;canvas.onmouseup=sigEnd;canvas.onmouseleave=sigEnd;
+  canvas.ontouchstart=e=>{e.preventDefault();sigStart(e)};
+  canvas.ontouchmove=e=>{e.preventDefault();sigMove(e)};
+  canvas.ontouchend=sigEnd;
+}
+
+function getPos(e,c){const r=c.getBoundingClientRect(),s=e.touches?e.touches[0]:e;return{x:(s.clientX-r.left)*(c.width/r.width),y:(s.clientY-r.top)*(c.height/r.height)}}
+function sigStart(e){sigDrawing=true;const c=document.getElementById('sigCanvas');const p=getPos(e,c);sigCtx.beginPath();sigCtx.moveTo(p.x,p.y)}
+function sigMove(e){if(!sigDrawing)return;const c=document.getElementById('sigCanvas');const p=getPos(e,c);sigCtx.lineTo(p.x,p.y);sigCtx.stroke();sigHasData=true;document.getElementById('sig-placeholder').style.display='none'}
+function sigEnd(){sigDrawing=false}
+window.clearSig=function(){if(sigCtx){sigCtx.clearRect(0,0,sigCtx.canvas.width,sigCtx.canvas.height);sigHasData=false;document.getElementById('sig-placeholder').style.display='flex'}};
+
+window.confirmSign=async function(){
+  if(!sigHasData){showToast('Por favor firmá antes de confirmar','error');return}
+  const firma_img=document.getElementById('sigCanvas').toDataURL();
+  await updateDoc(doc(db,'receipts',currentSignReceiptId),{estado:'firmado',firmado_fecha:today(),firma_img});
+  closeModal('modal-sign');showToast('¡Recibo firmado! ✅','success');
+  setTimeout(()=>renderEmployeePages(),500);
+};
+
+// ============ MODALES ============
+window.openModal=function(id){document.getElementById(id).classList.remove('hidden')};
+window.closeModal=function(id){document.getElementById(id).classList.add('hidden')};
+function closeAllModals(){document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.add('hidden'))}
+window.closeModalOut=function(e,id){if(e.target.id===id)closeModal(id)};
+
+window.showNotifPanel=async function(){
+  const snap=await getDocs(collection(db,'notifs'));
+  const notifs=[];snap.forEach(d=>notifs.push(d.data()));
+  document.getElementById('notif-panel-list').innerHTML=notifs.length?notifs.slice(0,5).map(n=>`<div class="notif-item"><div class="notif-dot"></div><div><div style="font-size:13px;font-weight:600">${n.titulo}</div><div class="text-muted">${n.fecha}</div></div></div>`).join(''):'<div class="text-muted" style="text-align:center;padding:20px">Sin notificaciones</div>';
+  openModal('modal-notif-panel');
+};
+
+window.showUserMenu=function(){
+  document.getElementById('menu-user-name').childNodes[0].textContent=(currentUser&&currentUser.data.nombre||'Usuario')+' ';
+  openModal('modal-user-menu');
+};
+
+// ============ TOAST ============
+let toastTimer;
+window.showToast=function(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='show '+type;
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.className=''},3200);
+};
+
+// ============ OTROS ============
+window.aceptarTerminos=function(){
+  if(!document.getElementById('check-terminos').checked){showToast('Debés tildar la casilla para aceptar','error');return}
+  closeModal('modal-primer-ingreso');showToast('✅ Términos aceptados. Ya podés ingresar.','success');
+};
+
+// ============ ABRIR ARCHIVOS ============
+// Cache temporal de datos de archivos para evitar pasar base64 como atributo HTML
+const _fileCache = {};
+
+window.abrirArchivo=async function(e, docId, tipo){
+  e.preventDefault();
+  showToast('Cargando archivo...','');
+  try {
+    const coleccion = tipo==='recibo' ? 'receipts' : 'notifs';
+    const docSnap = await getDoc(doc(db, coleccion, docId));
+    if(!docSnap.exists()) return;
+    const data = docSnap.data();
+    abrirArchivoNotif(e, data.archivoData, data.archivoTipo||'');
+  } catch(err){ showToast('Error al abrir el archivo','error'); }
+};
+
+window.abrirArchivoNotif=function(e, archivoData, archivoTipo){
+  if(e) e.preventDefault();
+  if(!archivoData){ showToast('Sin archivo adjunto','error'); return; }
+  if(archivoTipo && archivoTipo.startsWith('image/')){
+    const win = window.open('','_blank');
+    win.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${archivoData}" style="max-width:100%;max-height:100vh"></body></html>`);
+  } else {
+    try {
+      const byteStr=atob(archivoData.split(',')[1]);
+      const ab=new ArrayBuffer(byteStr.length);
+      const ia=new Uint8Array(ab);
+      for(let i=0;i<byteStr.length;i++) ia[i]=byteStr.charCodeAt(i);
+      const blob=new Blob([ab],{type:'application/pdf'});
+      window.open(URL.createObjectURL(blob),'_blank');
+    } catch(err){ showToast('No se pudo abrir el archivo','error'); }
+  }
+};
+
+
+  if(inp.type==='password'){inp.type='text';btn.textContent='🙈'}
+  else{inp.type='password';btn.textContent='👁️'}
+};
+</script>
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').then(()=>console.log('SW registered'));
+}
+</script>
+</body>
+</html>
