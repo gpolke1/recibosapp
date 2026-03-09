@@ -897,6 +897,9 @@ window.notifFileSelected=function(inp){
   reader.onload = function(e){ notifFileData = e.target.result; notifFileType = file.type; };
   reader.readAsDataURL(file);
 };
+
+window.fileSelected=function(inp){
+  if(!inp.files||!inp.files[0])return;
   const file = inp.files[0];
   selectedFileName = file.name;
   document.getElementById('file-name').textContent='📎 '+file.name;
@@ -1073,7 +1076,8 @@ window.abrirArchivoNotif=function(e, archivoData, archivoTipo){
   }
 };
 
-
+window.togglePass=function(id,btn){
+  const inp=document.getElementById(id);
   if(inp.type==='password'){inp.type='text';btn.textContent='🙈'}
   else{inp.type='password';btn.textContent='👁️'}
 };
